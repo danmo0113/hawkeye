@@ -1,6 +1,8 @@
 package com.ruoyi.hawkeye.question.service;
 
 import java.util.List;
+
+import com.ruoyi.hawkeye.question.domain.HawkeyeExportQuestion;
 import com.ruoyi.hawkeye.question.domain.HawkeyeQuestion;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -31,6 +33,15 @@ public interface IHawkeyeQuestionService
     public List<HawkeyeQuestion> selectHawkeyeQuestionList(HawkeyeQuestion hawkeyeQuestion);
 
     public List<HawkeyeQuestion> selectHawkeyeQuestionPathList(HawkeyeQuestion hawkeyeQuestion);
+
+    /**
+     * 导入
+     * @param productList
+     * @param updateSupport
+     * @param operName
+     * @return
+     */
+    public String importData(List<HawkeyeExportQuestion> exportQuestionList, boolean updateSupport, String operName);
 
     /**
      * 新增题库题目

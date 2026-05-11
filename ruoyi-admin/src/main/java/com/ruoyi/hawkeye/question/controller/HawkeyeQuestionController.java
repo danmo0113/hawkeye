@@ -1,7 +1,10 @@
 package com.ruoyi.hawkeye.question.controller;
 
 import java.util.List;
+
+import com.ruoyi.hawkeye.question.domain.HawkeyeExportQuestion;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.math3.stat.descriptive.summary.Product;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +23,7 @@ import com.ruoyi.hawkeye.question.domain.HawkeyeQuestion;
 import com.ruoyi.hawkeye.question.service.IHawkeyeQuestionService;
 import com.ruoyi.common.utils.poi.ExcelUtil;
 import com.ruoyi.common.core.page.TableDataInfo;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 题库题目Controller
@@ -56,6 +60,26 @@ public class HawkeyeQuestionController extends BaseController
     {
         List<HawkeyeQuestion> list = hawkeyeQuestionService.selectHawkeyeQuestionPathList(hawkeyeQuestion);
         hawkeyeQuestionService.selectHawkeyeQuestionListExport(response,list);
+    }
+
+    /**
+     * 导入功能
+     * @param file
+     * @param updateSupport
+     * @return
+     * @throws Exception
+     */
+    @PostMapping("/importData")
+    public AjaxResult importData(MultipartFile file, boolean updateSupport) throws Exception {
+        // 1. 创建Excel工具类实例，传入待映射的实体类Class对象
+        ExcelUtil<HawkeyeExportQuestion> util = new ExcelUtil<>(HawkeyeExportQuestion.class);
+        // 2. 调用importExcel方法，将上传的文件流解析成实体对象列表
+        List<HawkeyeExportQuestion> productList = util.importExcel(file.getInputStream());
+        // 3. 获取当前操作的用户名
+        String operName = getUsername();
+        // 4. 调用Service层的业务方法处理数据，并返回处理消息
+        String message = hawkeyeQuestionService.importData(productList, updateSupport, operName);
+        return success(message);
     }
 
     /**

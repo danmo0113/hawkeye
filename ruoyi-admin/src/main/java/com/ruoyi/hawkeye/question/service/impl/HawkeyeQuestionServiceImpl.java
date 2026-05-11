@@ -1,5 +1,7 @@
 package com.ruoyi.hawkeye.question.service.impl;
 
+import com.ruoyi.common.exception.ServiceException;
+import com.ruoyi.common.utils.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.Jsoup;
 
@@ -67,7 +69,7 @@ public class HawkeyeQuestionServiceImpl implements IHawkeyeQuestionService
         List<HawkeyeExportQuestion> questionList = new ArrayList<>();
         for (HawkeyeQuestion question : hawkeyeQuestionList) {
             HawkeyeExportQuestion exportQuestion = new HawkeyeExportQuestion();
-            //题干内瓤
+            //题干内容
             exportQuestion.setQuestionContent(this.removeHtmlTags(question.getQuestionContent()));
             //题目类型
             exportQuestion.setQuestionType(question.getQuestionType());
@@ -98,7 +100,7 @@ public class HawkeyeQuestionServiceImpl implements IHawkeyeQuestionService
                 List<Map<String, String>> answerList = this.parseJsonArray(question.getCorrectAnswer());
                 String answerString = "";
                 for (Map<String, String> answer : answerList) {
-                    answerString += "答案" + answer.get("label") + ":" + answer.get("content") + ",";
+                    answerString += answer.get("content") + ",";
                 }
                 if (!answerString.equals("")) {
                     exportQuestion.setCorrectAnswer(answerString.substring(0, answerString.length() - 1));
@@ -173,6 +175,90 @@ public class HawkeyeQuestionServiceImpl implements IHawkeyeQuestionService
     @Override
     public List<HawkeyeQuestion> selectHawkeyeQuestionPathList(HawkeyeQuestion hawkeyeQuestion) {
         return hawkeyeQuestionMapper.selectHawkeyeQuestionPathList(hawkeyeQuestion);
+    }
+
+    /**
+     * 导入数据
+     * @param exportQuestionList
+     * @param updateSupport
+     * @param operName
+     * @return
+     */
+    @Override
+    public String importData(List<HawkeyeExportQuestion> exportQuestionList, boolean updateSupport, String operName) {
+        if (StringUtils.isNull(exportQuestionList) || exportQuestionList.size() == 0) {
+            throw new ServiceException("导入产品数据不能为空！");
+        }
+
+        int successNum = 0;
+        int failureNum = 0;
+        StringBuilder successMsg = new StringBuilder();
+        StringBuilder failureMsg = new StringBuilder();
+
+        for (HawkeyeExportQuestion question : exportQuestionList) {
+            HawkeyeQuestion newQuestion = new HawkeyeQuestion();
+            try {
+                newQuestion.setQuestionType(question.getQuestionType());
+                newQuestion.setQuestionContent(question.getQuestionContent());
+                newQuestion.setCorrectAnswer(question.getCorrectAnswer());
+                if (question.getQuestionType().equals("SINGLE") || question.getQuestionType().equals("MULTIPLE")
+                        || question.getQuestionType().equals("MULTI")) {
+                    String optionString = "[";
+                    if (!question.getOptionA().isEmpty()) {
+                        optionString += "{\"label\":\"A\",\"content\":\"" + question.getOptionA() + "\"},";
+                    }
+                    if (!question.getOptionB().isEmpty()) {
+                        optionString += "{\"label\":\"B\",\"content\":\"" + question.getOptionB() + "\"},";
+                    }
+                    if (!question.getOptionC().isEmpty()) {
+                        optionString += "{\"label\":\"C\",\"content\":\"" + question.getOptionC() + "\"},";
+                    }
+                    if (!question.getOptionD().isEmpty()) {
+                        optionString += "{\"label\":\"D\",\"content\":\"" + question.getOptionD() + "\"},";
+                    }
+                    if (!optionString.equals("[")) {
+                        optionString = optionString.substring(0, optionString.length() - 1);
+                    }
+                    optionString += "]";
+                    newQuestion.setOptions(optionString);
+                } else if (question.getQuestionType().equals("JUDGE")) {
+                    if (question.getCorrectAnswer().equals("对")) {
+                        newQuestion.setCorrectAnswer("1");
+                    } else {
+                        newQuestion.setCorrectAnswer("0");
+                    }
+                } else if (question.getQuestionType().equals("GAPFILL")) {
+                    if (!question.getCorrectAnswer().isEmpty()) {
+                        String[] answers = question.getCorrectAnswer().split(",");
+                        String newAnswer = "[";
+                        for (int i = 1; i <= answers.length; i++) {
+                            newAnswer += "{\"label\":\"" + i + "\",\"content\":\"" + answers[i - 1] + "\"},";
+                        }
+                        if (!newAnswer.equals("[")) {
+                            newAnswer = newAnswer.substring(0, newAnswer.length() - 1);
+                        }
+                        newAnswer += "]";
+                        newQuestion.setCorrectAnswer(newAnswer);
+                    }
+                }
+
+                newQuestion.setAnalysis(question.getAnalysis());
+                hawkeyeQuestionMapper.insertHawkeyeQuestion(newQuestion);
+                successNum++;
+            } catch (Exception e) {
+                failureNum++;
+                String msg = "<br/>" + failureNum + "、产品 " + question.getQuestionContent() + " 导入失败：";
+                failureMsg.append(msg).append(e.getMessage());
+            }
+        }
+
+        if (failureNum > 0) {
+            failureMsg.insert(0, "很抱歉，导入失败！共 " + failureNum + " 条数据格式不正确，错误如下：");
+            throw new ServiceException(failureMsg.toString());
+        } else {
+            successMsg.insert(0, "恭喜您，数据已全部导入成功！共 " + successNum + " 条，数据如下：");
+            return successMsg.toString();
+        }
     }
 
     /**

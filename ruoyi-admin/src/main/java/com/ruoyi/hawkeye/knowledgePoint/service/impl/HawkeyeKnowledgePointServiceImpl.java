@@ -44,6 +44,11 @@ public class HawkeyeKnowledgePointServiceImpl implements IHawkeyeKnowledgePointS
         return hawkeyeKnowledgePointMapper.selectHawkeyeKnowledgePointList(hawkeyeKnowledgePoint);
     }
 
+    @Override
+    public List<HawkeyeKnowledgePoint> selectHawkeyeKnowledgePointParentList(HawkeyeKnowledgePoint hawkeyeKnowledgePoint) {
+        return hawkeyeKnowledgePointMapper.selectHawkeyeKnowledgePointParentList(hawkeyeKnowledgePoint);
+    }
+
     /**
      * 新增章节管理
      * 

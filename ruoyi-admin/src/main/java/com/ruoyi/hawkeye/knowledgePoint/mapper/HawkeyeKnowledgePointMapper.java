@@ -28,6 +28,13 @@ public interface HawkeyeKnowledgePointMapper
     public List<HawkeyeKnowledgePoint> selectHawkeyeKnowledgePointList(HawkeyeKnowledgePoint hawkeyeKnowledgePoint);
 
     /**
+     * 带追溯节点的章节管理列表
+     * @param hawkeyeKnowledgePoint
+     * @return
+     */
+    public List<HawkeyeKnowledgePoint> selectHawkeyeKnowledgePointParentList(HawkeyeKnowledgePoint hawkeyeKnowledgePoint);
+
+    /**
      * 新增章节管理
      * 
      * @param hawkeyeKnowledgePoint 章节管理

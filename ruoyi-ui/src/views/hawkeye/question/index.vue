@@ -45,8 +45,13 @@
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button type="info" plain icon="el-icon-upload2" size="mini"
-         @click="handleImport">导入</el-button>
+        <el-button
+          type="info"
+          plain
+          icon="el-icon-upload2"
+          size="mini"
+          @click="handleImport"
+        >导入</el-button>
       </el-col>
       <el-col :span="1.5">
         <el-button
@@ -240,8 +245,32 @@
       </div>
     </el-dialog>
     <!-- 用户导入对话框 -->
-    <excel-import-dialog ref="importUserRef" title="用户导入" action="/system/user/importData" template-action="/system/user/importTemplate" template-file-name="user_template" update-support-label="是否更新已经存在的用户数据" @success="getList" />
-  
+    <el-dialog :title="upload.title" :visible.sync="upload.open" width="400px" append-to-body>
+      <el-upload
+        ref="uploadRef"
+        :limit="1"
+        accept=".xlsx, .xls"
+        :headers="upload.headers"
+        :action="upload.url + '?updateSupport=' + upload.updateSupport"
+        :disabled="upload.isUploading"
+        :on-progress="handleFileUploadProgress"
+        :on-success="handleFileSuccess"
+        :auto-upload="false"
+        drag
+      >
+        <i class="el-icon-upload"></i>
+        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+        <div class="el-upload__tip" slot="tip">
+          <el-checkbox v-model="upload.updateSupport" /> 是否更新已经存在的产品数据
+          <span slot="tip" class="el-upload__tip">仅允许导入xls、xlsx格式文件。</span>
+          <el-link type="primary" :underline="false" style="font-size:12px;vertical-align: baseline;" @click="importTemplate">下载模板</el-link>
+        </div>
+      </el-upload>
+      <div slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="submitFileForm">确 定</el-button>
+        <el-button @click="upload.open = false">取 消</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
@@ -253,6 +282,7 @@ import Treeselect from "@riophae/vue-treeselect"
 import "@riophae/vue-treeselect/dist/vue-treeselect.css"
 import TreePanel from "@/components/TreePanel"
 import ExcelImportDialog from "@/components/ExcelImportDialog"
+import { getToken } from "@/utils/auth";
 
 export default {
   name: "Question",
@@ -311,7 +341,22 @@ export default {
         correctAnswer: [
           { required: true, message: "正确答案不能为空", trigger: "change" }
         ],
-      }
+      },
+      // 导入对话框相关数据
+      upload: {
+        // 是否显示弹出层
+        open: false,
+        // 弹出层标题
+        title: "",
+        // 是否禁用上传
+        isUploading: false,
+        // 是否更新已经存在的用户数据
+        updateSupport: 0,
+        // 设置上传的请求头部
+        headers: { Authorization: "Bearer " + getToken() },
+        // 上传的地址（后端接口地址）
+        url: process.env.VUE_APP_BASE_API + "/hawkeye/question/importData",
+      },
     }
   },
   created() {
@@ -537,8 +582,32 @@ export default {
     },
     /** 导入按钮操作 */
     handleImport() {
-      this.$refs.importUserRef.open()
-    }
+      this.upload.title = "产品导入";
+      this.upload.open = true;
+    },
+    /** 下载模板操作 */
+    importTemplate() {
+      importTemplate("/product/product/importTemplate").then(response => {
+        this.download(response.msg);
+      });
+    },
+    // 文件上传中处理
+    handleFileUploadProgress(event, file, fileList) {
+      this.upload.isUploading = true;
+    },
+    // 文件上传成功处理
+    handleFileSuccess(response, file, fileList) {
+      this.upload.open = false;
+      this.upload.isUploading = false;
+      // 使用官方建议的方法清空文件列表，替换原来的this.$refs.upload.clearFiles()
+      this.$refs.uploadRef.handleRemove(file, fileList);
+      this.$alert(response.msg, "导入结果", { dangerouslyUseHTMLString: true });
+      this.getList();
+    },
+    // 提交上传文件
+    submitFileForm() {
+      this.$refs.uploadRef.submit();
+    },
   }
 }
 </script>
