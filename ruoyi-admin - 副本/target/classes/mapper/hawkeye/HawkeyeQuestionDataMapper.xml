@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.hawkeye.questionData.mapper.HawkeyeQuestionDataMapper">
+    
+    <resultMap type="HawkeyeQuestionData" id="HawkeyeQuestionDataResult">
+        <result property="qdId"    column="qd_id"    />
+        <result property="categoryId"    column="category_id"    />
+        <result property="categoryName"    column="category_name"    />
+        <result property="qdContent"    column="qd_content"    />
+    </resultMap>
+
+    <sql id="selectHawkeyeQuestionDataVo">
+        select qd.*,c.category_name from hawkeye_question_data qd left join hawkeye_exam_category c
+        on qd.category_id=c.category_id
+    </sql>
+
+    <select id="selectHawkeyeQuestionDataList" parameterType="HawkeyeQuestionData" resultMap="HawkeyeQuestionDataResult">
+        <include refid="selectHawkeyeQuestionDataVo"/>
+        <where>  
+            <if test="categoryId != null "> and category_id = #{categoryId}</if>
+        </where>
+    </select>
+    
+    <select id="selectHawkeyeQuestionDataByQdId" parameterType="Long" resultMap="HawkeyeQuestionDataResult">
+        <include refid="selectHawkeyeQuestionDataVo"/>
+        where qd_id = #{qdId}
+    </select>
+
+    <insert id="insertHawkeyeQuestionData" parameterType="HawkeyeQuestionData" useGeneratedKeys="true" keyProperty="qdId">
+        insert into hawkeye_question_data
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="categoryId != null">category_id,</if>
+            <if test="qdContent != null and qdContent != ''">qd_content,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="qdContent != null and qdContent != ''">#{qdContent},</if>
+         </trim>
+    </insert>
+
+    <update id="updateHawkeyeQuestionData" parameterType="HawkeyeQuestionData">
+        update hawkeye_question_data
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="qdContent != null and qdContent != ''">qd_content = #{qdContent},</if>
+        </trim>
+        where qd_id = #{qdId}
+    </update>
+
+    <delete id="deleteHawkeyeQuestionDataByQdId" parameterType="Long">
+        delete from hawkeye_question_data where qd_id = #{qdId}
+    </delete>
+
+    <delete id="deleteHawkeyeQuestionDataByQdIds" parameterType="String">
+        delete from hawkeye_question_data where qd_id in 
+        <foreach item="qdId" collection="array" open="(" separator="," close=")">
+            #{qdId}
+        </foreach>
+    </delete>
+</mapper>

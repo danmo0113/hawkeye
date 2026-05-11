@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.hawkeye.knowledgePoint.mapper.HawkeyeKnowledgePointMapper">
+    
+    <resultMap type="HawkeyeKnowledgePoint" id="HawkeyeKnowledgePointResult">
+        <result property="kpId"    column="kp_id"    />
+        <result property="categoryId"    column="category_id"    />
+        <result property="categoryName"    column="category_name"    />
+        <result property="parentId"    column="parent_id"    />
+        <result property="kpName"    column="kp_name"    />
+        <result property="level"    column="level"    />
+        <result property="importance"    column="importance"    />
+        <result property="suggestedDuration"    column="suggested_duration"    />
+        <result property="sortOrder"    column="sort_order"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+    <sql id="selectHawkeyeKnowledgePointVo">
+        select kp.*, category_name from hawkeye_knowledge_point kp
+               left join hawkeye_exam_category ec ON kp.category_id=ec.category_id
+
+    </sql>
+
+    <select id="selectHawkeyeKnowledgePointList" parameterType="HawkeyeKnowledgePoint" resultMap="HawkeyeKnowledgePointResult">
+        <include refid="selectHawkeyeKnowledgePointVo"/>
+        <if test="questionId != null and questionId!=''"> left join hawkeye_question_kp qkp on kp.kp_id=qkp.kp_id</if>
+        <where>  
+            <if test="categoryId != null "> and category_id = #{categoryId}</if>
+            <if test="kpName != null  and kpName != ''"> and kp_name like concat('%', #{kpName}, '%')</if>
+            <if test="level != null "> and level = #{level}</if>
+            <if test="questionId != null and questionId!=''"> and question_id = #{questionId}</if>
+        </where>
+    </select>
+    
+    <select id="selectHawkeyeKnowledgePointByKpId" parameterType="Long" resultMap="HawkeyeKnowledgePointResult">
+        <include refid="selectHawkeyeKnowledgePointVo"/>
+        where kp_id = #{kpId}
+    </select>
+
+    <insert id="insertHawkeyeKnowledgePoint" parameterType="HawkeyeKnowledgePoint" useGeneratedKeys="true" keyProperty="kpId">
+        insert into hawkeye_knowledge_point
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="categoryId != null">category_id,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="kpName != null and kpName != ''">kp_name,</if>
+            <if test="level != null">level,</if>
+            <if test="importance != null">importance,</if>
+            <if test="suggestedDuration != null">suggested_duration,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="categoryId != null">#{categoryId},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="kpName != null and kpName != ''">#{kpName},</if>
+            <if test="level != null">#{level},</if>
+            <if test="importance != null">#{importance},</if>
+            <if test="suggestedDuration != null">#{suggestedDuration},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateHawkeyeKnowledgePoint" parameterType="HawkeyeKnowledgePoint">
+        update hawkeye_knowledge_point
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="categoryId != null">category_id = #{categoryId},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="kpName != null and kpName != ''">kp_name = #{kpName},</if>
+            <if test="level != null">level = #{level},</if>
+            <if test="importance != null">importance = #{importance},</if>
+            <if test="suggestedDuration != null">suggested_duration = #{suggestedDuration},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where kp_id = #{kpId}
+    </update>
+
+    <delete id="deleteHawkeyeKnowledgePointByKpId" parameterType="Long">
+        delete from hawkeye_knowledge_point where kp_id = #{kpId}
+    </delete>
+
+    <delete id="deleteHawkeyeKnowledgePointByKpIds" parameterType="String">
+        delete from hawkeye_knowledge_point where kp_id in 
+        <foreach item="kpId" collection="array" open="(" separator="," close=")">
+            #{kpId}
+        </foreach>
+    </delete>
+</mapper>

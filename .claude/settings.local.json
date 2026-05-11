@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import pandas as pd; df = pd.read_excel\\(r'E:\\\\Hawkeye\\\\开发需求260401.xlsx', sheet_name=None\\); print\\('工作表列表:', list\\(df.keys\\(\\)\\)\\)\")",
+      "Bash(pip install *)",
+      "Bash(python3 -c ' *)",
+      "Bash(python -c ' *)",
+      "Bash(iconv -f gbk -t utf-8)"
+    ]
+  }
+}

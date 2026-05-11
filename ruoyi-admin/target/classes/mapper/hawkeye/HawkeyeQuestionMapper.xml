@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.hawkeye.question.mapper.HawkeyeQuestionMapper">
+    <resultMap type="HawkeyeQuestion" id="HawkeyeQuestionResult">
+        <result property="questionId"    column="question_id"    />
+        <result property="kpNames"    column="kp_names"    />
+        <result property="questionType"    column="question_type"    />
+        <result property="questionTypeChildren"    column="question_type_children"    />
+        <result property="questionContent"    column="question_content"    />
+        <result property="options"    column="options"    />
+        <result property="correctAnswer"    column="correct_answer"    />
+        <result property="analysis"    column="analysis"    />
+        <result property="difficulty"    column="difficulty"    />
+        <result property="examFrequency"    column="exam_frequency"    />
+        <result property="materialId"    column="material_id"    />
+        <result property="materialContent"    column="material_content"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+    </resultMap>
+
+
+    <resultMap type="HawkeyeQuestion" id="HawkeyeQuestionKPResult">
+        <id property="questionId"    column="question_id"    />
+        <result property="kpNames"    column="kp_names"    />
+        <result property="questionType"    column="question_type"    />
+        <result property="questionTypeChildren"    column="question_type_children"    />
+        <result property="questionContent"    column="question_content"    />
+        <result property="options"    column="options"    />
+        <result property="correctAnswer"    column="correct_answer"    />
+        <result property="analysis"    column="analysis"    />
+        <result property="difficulty"    column="difficulty"    />
+        <result property="examFrequency"    column="exam_frequency"    />
+        <result property="materialId"    column="material_id"    />
+        <result property="materialContent"    column="material_content"    />
+        <result property="status"    column="status"    />
+        <result property="delFlag"    column="del_flag"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="remark"    column="remark"    />
+        <collection property="knowledgePointList" ofType="com.ruoyi.hawkeye.knowledgePoint.domain.HawkeyeKnowledgePoint">
+            <id property="kpId" column="kp_id"/>
+            <result property="kpName" column="kp_name"/>
+            <result property="parentId"    column="parent_id"    />
+            <result property="kpNamePath"    column="ancestor_path"    />
+        </collection>
+    </resultMap>
+
+    <sql id="selectHawkeyeQuestionVo">
+        select q.*,GROUP_CONCAT(kp.kp_name) AS kp_names from hawkeye_question q
+            left join hawkeye_question_kp qkp on q.question_id=qkp.question_id
+            left join hawkeye_knowledge_point kp on qkp.kp_id=kp.kp_id
+
+    </sql>
+
+    <select id="selectHawkeyeQuestionList" parameterType="HawkeyeQuestion" resultMap="HawkeyeQuestionResult">
+        <include refid="selectHawkeyeQuestionVo"/>
+        <where>
+            <if test="questionType != null  and questionType != ''"> and question_type = #{questionType}</if>
+            <if test="questionContent != null  and questionContent != ''"> and question_content = #{questionContent}</if>
+            <if test="options != null  and options != ''"> and options = #{options}</if>
+            <if test="correctAnswer != null  and correctAnswer != ''"> and correct_answer = #{correctAnswer}</if>
+            <if test="analysis != null  and analysis != ''"> and analysis = #{analysis}</if>
+            <if test="materialId != null "> and material_id = #{materialId}</if>
+            <if test="materialContent != null  and materialContent != ''"> and material_content = #{materialContent}</if>
+            <if test="kpIds != null  and kpIds.size() > 0">
+                and qkp.kp_id in
+                <foreach collection="kpIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        GROUP BY q.question_id
+    </select>
+
+
+
+    <select id="selectHawkeyeQuestionPathList" parameterType="HawkeyeQuestion" resultMap="HawkeyeQuestionKPResult">
+        WITH RECURSIVE knowledge_point_path AS (
+            SELECT kp_id, kp_name, parent_id,
+                CAST(kp_name AS VARCHAR(1000)) AS ancestor_path
+                FROM hawkeye_knowledge_point
+                WHERE parent_id = 0
+            UNION ALL
+            SELECT b.kp_id, b.kp_name, b.parent_id,
+                CONCAT(bp.ancestor_path, '->', b.kp_name) AS ancestor_path
+                FROM hawkeye_knowledge_point b
+                INNER JOIN knowledge_point_path bp ON b.parent_id = bp.kp_id
+        )
+        SELECT bp.ancestor_path, kp.kp_id, kp.kp_name, kp.parent_id ,q.*
+            FROM hawkeye_question q
+            LEFT JOIN hawkeye_question_kp qkp ON q.question_id = qkp.question_id
+            LEFT JOIN hawkeye_knowledge_point kp ON kp.kp_id = qkp.kp_id
+            LEFT JOIN knowledge_point_path bp ON kp.kp_id = bp.kp_id
+        <where>
+            <if test="questionType != null  and questionType != ''"> and question_type = #{questionType}</if>
+            <if test="questionContent != null  and questionContent != ''"> and question_content = #{questionContent}</if>
+            <if test="options != null  and options != ''"> and options = #{options}</if>
+            <if test="correctAnswer != null  and correctAnswer != ''"> and correct_answer = #{correctAnswer}</if>
+            <if test="analysis != null  and analysis != ''"> and analysis = #{analysis}</if>
+            <if test="materialId != null "> and material_id = #{materialId}</if>
+            <if test="materialContent != null  and materialContent != ''"> and material_content = #{materialContent}</if>
+            <if test="kpIds != null  and kpIds.size() > 0">
+                and qkp.kp_id in
+                <foreach collection="kpIds" item="id" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+    
+    <select id="selectHawkeyeQuestionByQuestionId" parameterType="Long" resultMap="HawkeyeQuestionResult">
+        <include refid="selectHawkeyeQuestionVo"/>
+        where q.question_id = #{questionId}
+        GROUP BY q.question_id
+    </select>
+
+    <insert id="insertHawkeyeQuestion" parameterType="HawkeyeQuestion" useGeneratedKeys="true" keyProperty="questionId">
+        insert into hawkeye_question
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="questionType != null and questionType != ''">question_type,</if>
+            <if test="questionTypeChildren != null and questionTypeChildren != ''">question_type_children,</if>
+            <if test="questionContent != null and questionContent != ''">question_content,</if>
+            <if test="options != null">options,</if>
+            <if test="correctAnswer != null and correctAnswer != ''">correct_answer,</if>
+            <if test="analysis != null">analysis,</if>
+            <if test="difficulty != null">difficulty,</if>
+            <if test="examFrequency != null">exam_frequency,</if>
+            <if test="materialId != null">material_id,</if>
+            <if test="materialContent != null">material_content,</if>
+            <if test="status != null">status,</if>
+            <if test="delFlag != null">del_flag,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="remark != null">remark,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="questionType != null and questionType != ''">#{questionType},</if>
+            <if test="questionTypeChildren != null and questionTypeChildren != ''">#{questionTypeChildren},</if>
+            <if test="questionContent != null and questionContent != ''">#{questionContent},</if>
+            <if test="options != null">#{options},</if>
+            <if test="correctAnswer != null and correctAnswer != ''">#{correctAnswer},</if>
+            <if test="analysis != null">#{analysis},</if>
+            <if test="difficulty != null">#{difficulty},</if>
+            <if test="examFrequency != null">#{examFrequency},</if>
+            <if test="materialId != null">#{materialId},</if>
+            <if test="materialContent != null">#{materialContent},</if>
+            <if test="status != null">#{status},</if>
+            <if test="delFlag != null">#{delFlag},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="remark != null">#{remark},</if>
+         </trim>
+    </insert>
+
+    <update id="updateHawkeyeQuestion" parameterType="HawkeyeQuestion">
+        update hawkeye_question
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="questionType != null and questionType != ''">question_type = #{questionType},</if>
+            <if test="questionTypeChildren != null and questionTypeChildren != ''">question_type_children = #{questionTypeChildren},</if>
+            <if test="questionContent != null and questionContent != ''">question_content = #{questionContent},</if>
+            <if test="options != null">options = #{options},</if>
+            <if test="correctAnswer != null and correctAnswer != ''">correct_answer = #{correctAnswer},</if>
+            <if test="analysis != null">analysis = #{analysis},</if>
+            <if test="difficulty != null">difficulty = #{difficulty},</if>
+            <if test="examFrequency != null">exam_frequency = #{examFrequency},</if>
+            <if test="materialId != null">material_id = #{materialId},</if>
+            <if test="materialContent != null">material_content = #{materialContent},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="delFlag != null">del_flag = #{delFlag},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="remark != null">remark = #{remark},</if>
+        </trim>
+        where question_id = #{questionId}
+    </update>
+
+    <delete id="deleteHawkeyeQuestionByQuestionId" parameterType="Long">
+        delete from hawkeye_question where question_id = #{questionId}
+    </delete>
+
+    <delete id="deleteHawkeyeQuestionByQuestionIds" parameterType="String">
+        delete from hawkeye_question where question_id in 
+        <foreach item="questionId" collection="array" open="(" separator="," close=")">
+            #{questionId}
+        </foreach>
+    </delete>
+</mapper>

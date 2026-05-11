@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.hawkeye.questionKp.mapper.HawkeyeQuestionKpMapper">
+    
+    <resultMap type="HawkeyeQuestionKp" id="HawkeyeQuestionKpResult">
+        <result property="id"    column="id"    />
+        <result property="questionId"    column="question_id"    />
+        <result property="kpId"    column="kp_id"    />
+    </resultMap>
+
+    <sql id="selectHawkeyeQuestionKpVo">
+        select id, question_id, kp_id from hawkeye_question_kp
+    </sql>
+
+    <select id="selectHawkeyeQuestionKpList" parameterType="HawkeyeQuestionKp" resultMap="HawkeyeQuestionKpResult">
+        <include refid="selectHawkeyeQuestionKpVo"/>
+        <where>  
+            <if test="questionId != null "> and question_id = #{questionId}</if>
+            <if test="kpId != null "> and kp_id = #{kpId}</if>
+        </where>
+    </select>
+    
+    <select id="selectHawkeyeQuestionKpById" parameterType="Long" resultMap="HawkeyeQuestionKpResult">
+        <include refid="selectHawkeyeQuestionKpVo"/>
+        where id = #{id}
+    </select>
+
+    <insert id="insertHawkeyeQuestionKp" parameterType="HawkeyeQuestionKp" useGeneratedKeys="true" keyProperty="id">
+        insert into hawkeye_question_kp
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="questionId != null">question_id,</if>
+            <if test="kpId != null">kp_id,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="questionId != null">#{questionId},</if>
+            <if test="kpId != null">#{kpId},</if>
+         </trim>
+    </insert>
+
+    <update id="updateHawkeyeQuestionKp" parameterType="HawkeyeQuestionKp">
+        update hawkeye_question_kp
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="questionId != null">question_id = #{questionId},</if>
+            <if test="kpId != null">kp_id = #{kpId},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteHawkeyeQuestionKpById" parameterType="Long">
+        delete from hawkeye_question_kp where id = #{id}
+    </delete>
+
+    <delete id="deleteHawkeyeQuestionKpByIds" parameterType="String">
+        delete from hawkeye_question_kp where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>
