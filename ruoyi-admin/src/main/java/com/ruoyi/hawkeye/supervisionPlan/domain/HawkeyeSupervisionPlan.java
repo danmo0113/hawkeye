@@ -9,7 +9,7 @@ import com.ruoyi.common.core.domain.BaseEntity;
  * 督学计划对象 hawkeye_supervision_plan
  * 
  * @author 墨
- * @date 2026-04-28
+ * @date 2026-05-11
  */
 public class HawkeyeSupervisionPlan extends BaseEntity
 {
@@ -22,8 +22,6 @@ public class HawkeyeSupervisionPlan extends BaseEntity
     @Excel(name = "所属分类")
     private Long categoryId;
 
-    /** 所属分类名称 */
-    @Excel(name = "所属分类名称")
     private String categoryName;
 
     /** 计划名称 */
@@ -31,7 +29,7 @@ public class HawkeyeSupervisionPlan extends BaseEntity
     private String planName;
 
     /** 计划类型（BASIC基础 STAGE冲刺 SPRINT押题） */
-    @Excel(name = "计划类型", readConverterExp = "BASIC=基础,STAGE=冲刺,SPRINT=押题")
+    @Excel(name = "计划类型", readConverterExp = "B=ASIC基础,S=TAGE冲刺,S=PRINT押题")
     private String planType;
 
     /** 总天数 */
@@ -52,7 +50,15 @@ public class HawkeyeSupervisionPlan extends BaseEntity
     /** 删除标志 */
     private String delFlag;
 
-    public void setPlanId(Long planId) 
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    public String getCategoryName() {
+        return this.categoryName;
+    }
+
+    public void setPlanId(Long planId)
     {
         this.planId = planId;
     }
@@ -67,19 +73,9 @@ public class HawkeyeSupervisionPlan extends BaseEntity
         this.categoryId = categoryId;
     }
 
-    public Long getCategoryId()
+    public Long getCategoryId() 
     {
         return categoryId;
-    }
-
-    public void setCategoryName(String categoryName)
-    {
-        this.categoryName = categoryName;
-    }
-
-    public String getCategoryName()
-    {
-        return categoryName;
     }
 
     public void setPlanName(String planName) 

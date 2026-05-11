@@ -2,7 +2,6 @@ package com.ruoyi.hawkeye.supervisionPlan.service.impl;
 
 import java.util.List;
 import com.ruoyi.common.utils.DateUtils;
-import com.ruoyi.common.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.ruoyi.hawkeye.supervisionPlan.mapper.HawkeyeSupervisionPlanMapper;
@@ -13,7 +12,7 @@ import com.ruoyi.hawkeye.supervisionPlan.service.IHawkeyeSupervisionPlanService;
  * 督学计划Service业务层处理
  * 
  * @author 墨
- * @date 2026-04-28
+ * @date 2026-05-11
  */
 @Service
 public class HawkeyeSupervisionPlanServiceImpl implements IHawkeyeSupervisionPlanService 
@@ -93,34 +92,5 @@ public class HawkeyeSupervisionPlanServiceImpl implements IHawkeyeSupervisionPla
     public int deleteHawkeyeSupervisionPlanByPlanId(Long planId)
     {
         return hawkeyeSupervisionPlanMapper.deleteHawkeyeSupervisionPlanByPlanId(planId);
-    }
-
-    @Override
-    public int changeStatus(HawkeyeSupervisionPlan hawkeyeSupervisionPlan)
-    {
-        hawkeyeSupervisionPlan.setUpdateBy(SecurityUtils.getUsername());
-        hawkeyeSupervisionPlan.setUpdateTime(DateUtils.getNowDate());
-        return hawkeyeSupervisionPlanMapper.changeStatus(hawkeyeSupervisionPlan);
-    }
-
-    @Override
-    public int copyPlan(Long planId)
-    {
-        HawkeyeSupervisionPlan source = hawkeyeSupervisionPlanMapper.selectHawkeyeSupervisionPlanByPlanId(planId);
-        if (source == null)
-        {
-            return 0;
-        }
-        HawkeyeSupervisionPlan copy = new HawkeyeSupervisionPlan();
-        copy.setCategoryId(source.getCategoryId());
-        copy.setPlanName(source.getPlanName() + "(副本)");
-        copy.setPlanType(source.getPlanType());
-        copy.setTotalDays(source.getTotalDays());
-        copy.setDescription(source.getDescription());
-        copy.setDifficultyLevel(source.getDifficultyLevel());
-        copy.setStatus("0");
-        copy.setCreateBy(SecurityUtils.getUsername());
-        copy.setCreateTime(DateUtils.getNowDate());
-        return hawkeyeSupervisionPlanMapper.insertHawkeyeSupervisionPlan(copy);
     }
 }

@@ -129,6 +129,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         delete from hawkeye_knowledge_point where kp_id = #{kpId}
     </delete>
 
+    <select id="selectHawkeyeKnowledgePointByParentAndName" resultMap="HawkeyeKnowledgePointResult">
+        <include refid="selectHawkeyeKnowledgePointVo"/>
+        where kp_name = #{kpName}
+        <if test="parentId != null"> and kp.parent_id = #{parentId}</if>
+        <if test="level != null"> and kp.level = #{level}</if>
+    </select>
+
     <delete id="deleteHawkeyeKnowledgePointByKpIds" parameterType="String">
         delete from hawkeye_knowledge_point where kp_id in 
         <foreach item="kpId" collection="array" open="(" separator="," close=")">

@@ -88,7 +88,7 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
             SELECT kp_id, kp_name, parent_id,
                 CAST(kp_name AS VARCHAR(1000)) AS ancestor_path
                 FROM hawkeye_knowledge_point
-                WHERE parent_id = 0
+                WHERE parent_id = 0 OR parent_id IS NULL
             UNION ALL
             SELECT b.kp_id, b.kp_name, b.parent_id,
                 CONCAT(bp.ancestor_path, '->', b.kp_name) AS ancestor_path

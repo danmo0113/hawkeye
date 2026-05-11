@@ -68,23 +68,12 @@
           v-hasPermi="['hawkeye:supervisionPlan:remove']"
         >删除</el-button>
       </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="el-icon-download"
-          size="mini"
-          @click="handleExport"
-          v-hasPermi="['hawkeye:supervisionPlan:export']"
-        >导出</el-button>
-      </el-col>
       <right-toolbar :showSearch.sync="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="supervisionPlanList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="计划ID" align="center" prop="planId" />
-      <el-table-column label="所属分类" align="center" prop="categoryId" />
+      <el-table-column label="所属分类" align="center" prop="categoryName" />
       <el-table-column label="计划名称" align="center" prop="planName" />
       <el-table-column label="计划类型" align="center" prop="planType">
         <template slot-scope="scope">
@@ -131,9 +120,14 @@
     <el-dialog :title="title" :visible.sync="open" width="800px" append-to-body>
       <el-form ref="form" :model="form" :rules="rules" label-width="100px">
         <el-row>
-          <el-col :span="12">
+          <el-col :span="24">
             <el-form-item label="计划名称" prop="planName">
               <el-input v-model="form.planName" placeholder="请输入计划名称" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="所属分类" prop="categoryId">
+              <el-cascader style="width: 100%;" :props="{ emitPath: false }" v-model="form.categoryId" :options="categoryOptions"></el-cascader>
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -149,16 +143,6 @@
             </el-form-item>
           </el-col>
           <el-col :span="12">
-            <el-form-item label="总天数" prop="totalDays">
-              <el-input v-model="form.totalDays" placeholder="请输入总天数" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="24">
-            <el-form-item label="计划说明" prop="description">
-              <el-input v-model="form.description" type="textarea" placeholder="请输入内容" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
             <el-form-item label="难度等级" prop="difficultyLevel">
               <el-select v-model="form.difficultyLevel" placeholder="请选择难度等级">
                 <el-option
@@ -168,6 +152,16 @@
                   :value="parseInt(dict.value)"
                 ></el-option>
               </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="总天数" prop="totalDays">
+              <el-input-number v-model="form.totalDays" placeholder="请输入总天数" />
+            </el-form-item>
+          </el-col>
+          <el-col :span="24">
+            <el-form-item label="计划说明" prop="description">
+              <el-input v-model="form.description" type="textarea" placeholder="请输入内容" />
             </el-form-item>
           </el-col>
           <el-col :span="24">
@@ -187,6 +181,7 @@
 
 <script>
 import { listSupervisionPlan, getSupervisionPlan, delSupervisionPlan, addSupervisionPlan, updateSupervisionPlan } from "@/api/hawkeye/supervisionPlan"
+import { listCategory } from "@/api/hawkeye/category"
 
 export default {
   name: "SupervisionPlan",
@@ -211,6 +206,8 @@ export default {
       title: "",
       // 是否显示弹出层
       open: false,
+      //所属分类树选项
+      categoryOptions: [],
       // 查询参数
       queryParams: {
         pageNum: 1,
@@ -297,12 +294,14 @@ export default {
     /** 新增按钮操作 */
     handleAdd() {
       this.reset()
+      this.getCategoryTreeselect()
       this.open = true
       this.title = "添加督学计划"
     },
     /** 修改按钮操作 */
     handleUpdate(row) {
       this.reset()
+      this.getCategoryTreeselect()
       const planId = row.planId || this.ids
       getSupervisionPlan(planId).then(response => {
         this.form = response.data
@@ -345,7 +344,32 @@ export default {
       this.download('hawkeye/supervisionPlan/export', {
         ...this.queryParams
       }, `supervisionPlan_${new Date().getTime()}.xlsx`)
-    }
+    },
+    /** 查询分类管理下拉树结构 */
+    getCategoryTreeselect() {
+      listCategory().then(response => {
+        this.categoryOptions = this.convertTree(this.handleTree(response.data, "categoryId", "parentId"));
+      })
+    },
+    convertTree(originalArray) {
+      if (!Array.isArray(originalArray)) return [];
+      return originalArray.map(item => {
+        // 提取需要转换的字段，其余字段保留
+        const { categoryId, categoryName, children, ...rest } = item;
+        
+        const newNode = {
+          value: categoryId,
+          label: categoryName,
+          ...rest
+        };
+        
+        if (children && children.length) {
+          newNode.children = this.convertTree(children);
+        }
+        
+        return newNode;
+      });
+    },
   }
 }
 </script>

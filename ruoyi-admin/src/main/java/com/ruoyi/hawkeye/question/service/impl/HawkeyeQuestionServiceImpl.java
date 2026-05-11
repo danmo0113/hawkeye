@@ -244,6 +244,18 @@ public class HawkeyeQuestionServiceImpl implements IHawkeyeQuestionService
 
                 newQuestion.setAnalysis(question.getAnalysis());
                 hawkeyeQuestionMapper.insertHawkeyeQuestion(newQuestion);
+                // 处理知识点分类，并关联题目与最深层知识点
+                List<Long> kpIds = this.processKnowledgePoints(
+                        question.getKpName1(), question.getKpName2(),
+                        question.getKpName3(), question.getKpName4());
+                if (!kpIds.isEmpty()) {
+                    for (Long kpId : kpIds) {
+                        HawkeyeQuestionKp questionKp = new HawkeyeQuestionKp();
+                        questionKp.setKpId(kpId);
+                        questionKp.setQuestionId(newQuestion.getQuestionId());
+                        hawkeyeQuestionKpMapper.insertHawkeyeQuestionKp(questionKp);
+                    }
+                }
                 successNum++;
             } catch (Exception e) {
                 failureNum++;
@@ -321,7 +333,16 @@ public class HawkeyeQuestionServiceImpl implements IHawkeyeQuestionService
     {
         return hawkeyeQuestionMapper.deleteHawkeyeQuestionByQuestionId(questionId);
     }
+
     private void addQuestionKp(HawkeyeQuestion hawkeyeQuestion) {
+        HawkeyeQuestionKp kp = new HawkeyeQuestionKp();
+        kp.setQuestionId(hawkeyeQuestion.getQuestionId());
+        List<HawkeyeQuestionKp> questionKps = hawkeyeQuestionKpMapper.selectHawkeyeQuestionKpList(kp);
+        Long[] kpIds = new Long[questionKps.size()];
+        for (int i = 0; i < questionKps.size(); i++) {
+            kpIds[i] = questionKps.get(i).getId();
+        }
+        hawkeyeQuestionKpMapper.deleteHawkeyeQuestionKpByIds(kpIds);
         if (hawkeyeQuestion.getKpIds() != null) {
             for (Long kpId : hawkeyeQuestion.getKpIds()) {
                 HawkeyeQuestionKp questionKp = new HawkeyeQuestionKp();
@@ -426,6 +447,84 @@ public class HawkeyeQuestionServiceImpl implements IHawkeyeQuestionService
         // 解析 HTML 并获取纯文本
         Document document = Jsoup.parse(html);
         return document.text();  // 自动去除标签、合并空白，返回纯文本
+    }
+
+    /**
+     * 处理导入题目中的四级知识点分类，逐级查找或创建，返回最深层知识点ID列表
+     */
+    private List<Long> processKnowledgePoints(String kpName1, String kpName2, String kpName3, String kpName4) {
+        List<Long> deepestIds = new ArrayList<>();
+        if (StringUtils.isEmpty(kpName1)) {
+            return deepestIds;
+        }
+
+        // 一级分类 (level=1, parentId=0)
+        List<Long> level1Ids = new ArrayList<>();
+        for (String name : kpName1.split(",")) {
+            name = name.trim();
+            if (!name.isEmpty()) {
+                level1Ids.add(findOrCreateKp(name, 0L, 1));
+            }
+        }
+        if (level1Ids.isEmpty()) return deepestIds;
+
+        // 二级分类 (level=2, parent=对应一级)
+        List<Long> level2Ids = new ArrayList<>();
+        if (StringUtils.isNotEmpty(kpName2)) {
+            for (Long parentId : level1Ids) {
+                for (String name : kpName2.split(",")) {
+                    name = name.trim();
+                    if (!name.isEmpty()) {
+                        level2Ids.add(findOrCreateKp(name, parentId, 2));
+                    }
+                }
+            }
+        }
+        if (level2Ids.isEmpty()) return level1Ids;
+
+        // 三级分类 (level=3, parent=对应二级)
+        List<Long> level3Ids = new ArrayList<>();
+        if (StringUtils.isNotEmpty(kpName3)) {
+            for (Long parentId : level2Ids) {
+                for (String name : kpName3.split(",")) {
+                    name = name.trim();
+                    if (!name.isEmpty()) {
+                        level3Ids.add(findOrCreateKp(name, parentId, 3));
+                    }
+                }
+            }
+        }
+        if (level3Ids.isEmpty()) return level2Ids;
+
+        // 四级分类 (level=4, parent=对应三级)
+        if (StringUtils.isNotEmpty(kpName4)) {
+            for (Long parentId : level3Ids) {
+                for (String name : kpName4.split(",")) {
+                    name = name.trim();
+                    if (!name.isEmpty()) {
+                        deepestIds.add(findOrCreateKp(name, parentId, 4));
+                    }
+                }
+            }
+        }
+        return deepestIds.isEmpty() ? level3Ids : deepestIds;
+    }
+
+    private Long findOrCreateKp(String kpName, Long parentId, Integer level) {
+        HawkeyeKnowledgePoint existing = hawkeyeKnowledgePointMapper
+                .selectHawkeyeKnowledgePointByParentAndName(parentId, kpName, level);
+        if (existing != null) {
+            return existing.getKpId();
+        }
+        HawkeyeKnowledgePoint newKp = new HawkeyeKnowledgePoint();
+        newKp.setKpName(kpName);
+        newKp.setParentId(parentId);
+        newKp.setLevel(level);
+        newKp.setStatus("0");
+        newKp.setDelFlag("0");
+        newKp.setCreateTime(DateUtils.getNowDate());
+        hawkeyeKnowledgePointMapper.insertHawkeyeKnowledgePoint(newKp);
+        return newKp.getKpId();
     }
 
     /**

@@ -23,18 +23,18 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </resultMap>
 
     <sql id="selectHawkeyeSupervisionPlanVo">
-        select p.plan_id, p.category_id, c.category_name, p.plan_name, p.plan_type, p.total_days, p.description, p.difficulty_level, p.status, p.del_flag, p.create_by, p.create_time, p.update_by, p.update_time, p.remark from hawkeye_supervision_plan p left join hawkeye_exam_category c on p.category_id = c.category_id
+        select ec.category_name,sp.* from hawkeye_supervision_plan sp
+        left join hawkeye_exam_category ec on sp.category_id=ec.category_id
     </sql>
 
     <select id="selectHawkeyeSupervisionPlanList" parameterType="HawkeyeSupervisionPlan" resultMap="HawkeyeSupervisionPlanResult">
         <include refid="selectHawkeyeSupervisionPlanVo"/>
-        <where>
-            <if test="categoryId != null "> and p.category_id = #{categoryId}</if>
-            <if test="categoryName != null  and categoryName != ''"> and c.category_name like concat('%', #{categoryName}, '%')</if>
-            <if test="planName != null  and planName != ''"> and p.plan_name like concat('%', #{planName}, '%')</if>
-            <if test="planType != null  and planType != ''"> and p.plan_type = #{planType}</if>
-            <if test="difficultyLevel != null "> and p.difficulty_level = #{difficultyLevel}</if>
-            <if test="status != null  and status != ''"> and p.status = #{status}</if>
+        <where>  
+            <if test="categoryId != null "> and sp.category_id = #{categoryId}</if>
+            <if test="planName != null  and planName != ''"> and plan_name like concat('%', #{planName}, '%')</if>
+            <if test="planType != null  and planType != ''"> and plan_type = #{planType}</if>
+            <if test="description != null  and description != ''"> and description = #{description}</if>
+            <if test="difficultyLevel != null "> and difficulty_level = #{difficultyLevel}</if>
         </where>
     </select>
     
@@ -102,13 +102,9 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     </delete>
 
     <delete id="deleteHawkeyeSupervisionPlanByPlanIds" parameterType="String">
-        delete from hawkeye_supervision_plan where plan_id in
+        delete from hawkeye_supervision_plan where plan_id in 
         <foreach item="planId" collection="array" open="(" separator="," close=")">
             #{planId}
         </foreach>
     </delete>
-
-    <update id="changeStatus" parameterType="HawkeyeSupervisionPlan">
-        update hawkeye_supervision_plan set status = #{status}, update_by = #{updateBy}, update_time = #{updateTime} where plan_id = #{planId}
-    </update>
 </mapper>

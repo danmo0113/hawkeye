@@ -7,7 +7,7 @@ import com.ruoyi.hawkeye.supervisionPlan.domain.HawkeyeSupervisionPlan;
  * 督学计划Mapper接口
  * 
  * @author 墨
- * @date 2026-04-28
+ * @date 2026-05-11
  */
 public interface HawkeyeSupervisionPlanMapper 
 {
@@ -53,17 +53,9 @@ public interface HawkeyeSupervisionPlanMapper
 
     /**
      * 批量删除督学计划
-     *
+     * 
      * @param planIds 需要删除的数据主键集合
      * @return 结果
      */
     public int deleteHawkeyeSupervisionPlanByPlanIds(Long[] planIds);
-
-    /**
-     * 变更督学计划状态
-     *
-     * @param hawkeyeSupervisionPlan 督学计划
-     * @return 结果
-     */
-    public int changeStatus(HawkeyeSupervisionPlan hawkeyeSupervisionPlan);
 }

@@ -42,20 +42,3 @@ export function delSupervisionPlan(planId) {
     method: 'delete'
   })
 }
-
-// 复制督学计划
-export function copySupervisionPlan(planId) {
-  return request({
-    url: '/hawkeye/supervisionPlan/copy/' + planId,
-    method: 'post'
-  })
-}
-
-// 变更督学计划状态
-export function changeSupervisionPlanStatus(planId, status) {
-  return request({
-    url: '/hawkeye/supervisionPlan/changeStatus',
-    method: 'put',
-    data: { planId, status }
-  })
-}

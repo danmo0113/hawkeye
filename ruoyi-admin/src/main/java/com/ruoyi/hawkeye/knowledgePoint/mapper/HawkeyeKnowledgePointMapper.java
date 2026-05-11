@@ -60,9 +60,17 @@ public interface HawkeyeKnowledgePointMapper
 
     /**
      * 批量删除章节管理
-     * 
+     *
      * @param kpIds 需要删除的数据主键集合
      * @return 结果
      */
     public int deleteHawkeyeKnowledgePointByKpIds(Long[] kpIds);
+
+    /**
+     * 根据名称、父级ID、层级精确查询知识点
+     */
+    public HawkeyeKnowledgePoint selectHawkeyeKnowledgePointByParentAndName(
+            @org.apache.ibatis.annotations.Param("parentId") Long parentId,
+            @org.apache.ibatis.annotations.Param("kpName") String kpName,
+            @org.apache.ibatis.annotations.Param("level") Integer level);
 }

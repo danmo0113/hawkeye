@@ -7,7 +7,7 @@ import com.ruoyi.hawkeye.supervisionPlan.domain.HawkeyeSupervisionPlan;
  * 督学计划Service接口
  * 
  * @author 墨
- * @date 2026-04-28
+ * @date 2026-05-11
  */
 public interface IHawkeyeSupervisionPlanService 
 {
@@ -53,25 +53,9 @@ public interface IHawkeyeSupervisionPlanService
 
     /**
      * 删除督学计划信息
-     *
+     * 
      * @param planId 督学计划主键
      * @return 结果
      */
     public int deleteHawkeyeSupervisionPlanByPlanId(Long planId);
-
-    /**
-     * 变更督学计划状态
-     *
-     * @param hawkeyeSupervisionPlan 督学计划
-     * @return 结果
-     */
-    public int changeStatus(HawkeyeSupervisionPlan hawkeyeSupervisionPlan);
-
-    /**
-     * 复制督学计划
-     *
-     * @param planId 督学计划主键
-     * @return 结果
-     */
-    public int copyPlan(Long planId);
 }

@@ -25,7 +25,7 @@ import com.ruoyi.common.core.page.TableDataInfo;
  * 督学计划Controller
  * 
  * @author 墨
- * @date 2026-04-28
+ * @date 2026-05-11
  */
 @RestController
 @RequestMapping("/hawkeye/supervisionPlan")
@@ -100,27 +100,5 @@ public class HawkeyeSupervisionPlanController extends BaseController
     public AjaxResult remove(@PathVariable Long[] planIds)
     {
         return toAjax(hawkeyeSupervisionPlanService.deleteHawkeyeSupervisionPlanByPlanIds(planIds));
-    }
-
-    /**
-     * 复制督学计划
-     */
-    @PreAuthorize("@ss.hasPermi('hawkeye:supervisionPlan:add')")
-    @Log(title = "督学计划", businessType = BusinessType.INSERT)
-    @PostMapping("/copy/{planId}")
-    public AjaxResult copy(@PathVariable Long planId)
-    {
-        return toAjax(hawkeyeSupervisionPlanService.copyPlan(planId));
-    }
-
-    /**
-     * 变更督学计划状态
-     */
-    @PreAuthorize("@ss.hasPermi('hawkeye:supervisionPlan:edit')")
-    @Log(title = "督学计划", businessType = BusinessType.UPDATE)
-    @PutMapping("/changeStatus")
-    public AjaxResult changeStatus(@RequestBody HawkeyeSupervisionPlan hawkeyeSupervisionPlan)
-    {
-        return toAjax(hawkeyeSupervisionPlanService.changeStatus(hawkeyeSupervisionPlan));
     }
 }

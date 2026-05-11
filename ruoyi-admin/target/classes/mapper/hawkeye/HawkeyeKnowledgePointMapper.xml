@@ -29,10 +29,33 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
 
     </sql>
 
+    <select id="selectHawkeyeKnowledgePointParentList" parameterType="HawkeyeKnowledgePoint" resultMap="HawkeyeKnowledgePointResult">
+        WITH RECURSIVE knowledge_point_path AS (
+            SELECT kp_id, kp_name, parent_id,
+                CAST(kp_name AS VARCHAR(1000)) AS ancestor_path
+                FROM hawkeye_knowledge_point
+                WHERE parent_id = 0 OR parent_id IS NULL
+            UNION ALL
+            SELECT b.kp_id, b.kp_name, b.parent_id,
+                CONCAT(bp.ancestor_path, '->', b.kp_name) AS ancestor_path
+                FROM hawkeye_knowledge_point b
+                INNER JOIN knowledge_point_path bp ON b.parent_id = bp.kp_id
+        )
+        SELECT bp.ancestor_path, kp.*
+        FROM hawkeye_knowledge_point kp
+        LEFT JOIN knowledge_point_path bp ON kp.kp_id = bp.kp_id
+        <where>  
+            <if test="categoryId != null "> and category_id = #{categoryId}</if>
+            <if test="kpName != null  and kpName != ''"> and kp_name like concat('%', #{kpName}, '%')</if>
+            <if test="level != null "> and level = #{level}</if>
+            <if test="questionId != null and questionId!=''"> and question_id = #{questionId}</if>
+        </where>
+    </select>
+
     <select id="selectHawkeyeKnowledgePointList" parameterType="HawkeyeKnowledgePoint" resultMap="HawkeyeKnowledgePointResult">
         <include refid="selectHawkeyeKnowledgePointVo"/>
         <if test="questionId != null and questionId!=''"> left join hawkeye_question_kp qkp on kp.kp_id=qkp.kp_id</if>
-        <where>  
+        <where>
             <if test="categoryId != null "> and category_id = #{categoryId}</if>
             <if test="kpName != null  and kpName != ''"> and kp_name like concat('%', #{kpName}, '%')</if>
             <if test="level != null "> and level = #{level}</if>
@@ -105,6 +128,13 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
     <delete id="deleteHawkeyeKnowledgePointByKpId" parameterType="Long">
         delete from hawkeye_knowledge_point where kp_id = #{kpId}
     </delete>
+
+    <select id="selectHawkeyeKnowledgePointByParentAndName" resultMap="HawkeyeKnowledgePointResult">
+        <include refid="selectHawkeyeKnowledgePointVo"/>
+        where kp_name = #{kpName}
+        <if test="parentId != null"> and kp.parent_id = #{parentId}</if>
+        <if test="level != null"> and kp.level = #{level}</if>
+    </select>
 
     <delete id="deleteHawkeyeKnowledgePointByKpIds" parameterType="String">
         delete from hawkeye_knowledge_point where kp_id in 
