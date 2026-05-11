@@ -56,9 +56,6 @@ public class HawkeyeQuestionController extends BaseController
     {
         List<HawkeyeQuestion> list = hawkeyeQuestionService.selectHawkeyeQuestionPathList(hawkeyeQuestion);
         hawkeyeQuestionService.selectHawkeyeQuestionListExport(response,list);
-//        List<HawkeyeQuestion> list = hawkeyeQuestionService.selectHawkeyeQuestionListExport(response,hawkeyeQuestion);
-//        ExcelUtil<HawkeyeQuestion> util = new ExcelUtil<HawkeyeQuestion>(HawkeyeQuestion.class);
-//        util.exportExcel(response, list, "题库题目数据");
     }
 
     /**
